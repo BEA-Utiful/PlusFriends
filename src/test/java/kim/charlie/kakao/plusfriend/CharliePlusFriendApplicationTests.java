@@ -16,17 +16,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class CharliePlusFriendApplicationTests {
-	@Autowired
-	private RedisTemplate<String, Object> redisTemplate;
-	
 	@Resource(name="redisTemplate")
 	private HashOperations<String, String, Object> hashOperations;
 	
 	@Before
 	public void setUp() {
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new StringRedisSerializer());
-		
 		hashOperations.put("test:task", "Hello", "World");
 	}
 	
