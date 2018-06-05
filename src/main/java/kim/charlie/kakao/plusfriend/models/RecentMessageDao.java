@@ -49,7 +49,7 @@ public class RecentMessageDao {
 			return connection.prepareStatement("select * from search where user_key =\"" + user_key + "\" and search_text = \"" + text + "\"");
 		}, resultSet -> {
 			resultSet.next();
-			return resultSet.getString(1);
+			return resultSet.getString("search_link");
 		});
 	}
 }

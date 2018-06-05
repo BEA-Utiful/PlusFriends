@@ -23,7 +23,8 @@ import kim.charlie.kakao.plusfriend.objects.UserRequestMessage;
 
 @RestController
 public class MessageController {
-	private static final String TFREECA_URL = "http://www.tfreeca22.com/board.php?b_id=tmovie&mode=list&sc=";
+	private static final String TFREECA_HOST = "http://www.tfreeca22.com/";
+	private static final String TFREECA_URL = TFREECA_HOST + "board.php?b_id=tmovie&mode=list&sc=";
 	
 	@Autowired
 	private RecentMessageDao recentMessageDao;
@@ -80,7 +81,7 @@ public class MessageController {
 	}
 	
 	private Map<String, Object> downloadMovies(UserRequestMessage message) throws SQLException {
-		String link = recentMessageDao.getSearchLink(message.getUser_key(), message.getContent());
+		String link = TFREECA_HOST + recentMessageDao.getSearchLink(message.getUser_key(), message.getContent());
 		
 		Document document;
 		
