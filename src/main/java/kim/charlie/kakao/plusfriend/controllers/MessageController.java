@@ -43,7 +43,7 @@ public class MessageController {
 			if (recentMessageDao.getCount(message.getUser_key()) == 0) {
 				return searchMovies(message);				
 			} else {
-				return downloadMovies(message.getContent());
+				return downloadMovies(message);
 			}
 		}
 		
@@ -79,8 +79,23 @@ public class MessageController {
 		return responseMessage.getMessage(keyboard.getButtonSize() == 0 ? "검색 결과가 없습니다. 다시 시도해 주세요." : "영화(" + title + ")의 검색 결과입니다.", keyboard);
 	}
 	
-	private Map<String, Object> downloadMovies(String search_text) {
+	private Map<String, Object> downloadMovies(UserRequestMessage message) throws SQLException {
+		String link = recentMessageDao.getSearchLink(message.getUser_key(), message.getContent());
+		
+		Document document;
+		
+		try {
+			document = Jsoup.connect(link).get();
+			
+			Elements elements = document.select("a[href]");
+			for (Element element : elements) {
+				System.out.println(element.text());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		Message responseMessage = new Message();
-		return responseMessage.getMessage(search_text + "의 다운로드를 시작합니다.");
+		return responseMessage.getMessage(message.getContent() + "의 다운로드를 시작합니다.");
 	}
 }

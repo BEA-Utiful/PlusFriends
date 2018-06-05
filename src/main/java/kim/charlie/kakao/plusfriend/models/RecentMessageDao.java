@@ -43,4 +43,13 @@ public class RecentMessageDao {
 	public void addSearch(String user_key, String text, String link) throws SQLException {
 		jdbcTemplate.update("insert into search(user_key, search_text, search_link) values(?, ?, ?)", user_key, text, link);
 	}
+	
+	public String getSearchLink(String user_key, String text) throws SQLException {
+		return jdbcTemplate.query(connection -> {
+			return connection.prepareStatement("select * from search where user_key =\"" + user_key + "\" and search_text = \"" + text + "\"");
+		}, resultSet -> {
+			resultSet.next();
+			return resultSet.getString(1);
+		});
+	}
 }
