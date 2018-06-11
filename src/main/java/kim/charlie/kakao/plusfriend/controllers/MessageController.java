@@ -1,8 +1,14 @@
 package kim.charlie.kakao.plusfriend.controllers;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.jsoup.Jsoup;
@@ -20,6 +26,8 @@ import kim.charlie.kakao.plusfriend.objects.DefaultKeyboards;
 import kim.charlie.kakao.plusfriend.objects.Keyboard;
 import kim.charlie.kakao.plusfriend.objects.Message;
 import kim.charlie.kakao.plusfriend.objects.UserRequestMessage;
+
+import javax.net.ssl.HttpsURLConnection;
 
 @RestController
 public class MessageController {
@@ -82,21 +90,80 @@ public class MessageController {
 	
 	private Map<String, Object> downloadMovies(UserRequestMessage message) throws SQLException {
 		String link = TFREECA_HOST + recentMessageDao.getSearchLink(message.getUser_key(), message.getContent());
-		
+		String parameters = link.split("[?]")[1];
+		Map<String, String> parametersMap = new HashMap<>();
+
+		for (String parameter : parameters.split("&")) {
+			String[] keyAndValue = parameter.split("=");
+
+			parametersMap.put(keyAndValue[0], keyAndValue[1]);
+		}
+
+		String downloadUrl = "https://charlie.kim/tfreeca/download.php?b_id=" + parametersMap.get("b_id") + "&id=" + parametersMap.get("id");
+		System.out.println(downloadUrl);
+
+		downloadFile(downloadUrl, "/Users/Charlie/Downloads");
+
+/*
 		Document document;
 		
 		try {
 			document = Jsoup.connect(link).get();
 			
-			Elements elements = document.select("a[href]");
+			Elements elements = document.select("td.view_t4 a[href]");
 			for (Element element : elements) {
-				System.out.println(element.text());
+				if (element.text().contains(".torrent")) {
+					System.out.println(element.text());
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+*/
 		Message responseMessage = new Message();
 		return responseMessage.getMessage(message.getContent() + "의 다운로드를 시작합니다.");
 	}
+
+	private void downloadFile(String fileUrl, String destination) {
+	    try {
+            URL url = new URL(fileUrl);
+            HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
+
+            int responseCode = httpsURLConnection.getResponseCode();
+
+            if (responseCode == HttpsURLConnection.HTTP_OK) {
+                String filename = "";
+                String disposition = httpsURLConnection.getHeaderField("Content-Disposition");
+                String contentType = httpsURLConnection.getContentType();
+                int contentLength = httpsURLConnection.getContentLength();
+
+                if (disposition != null) {
+                    int index = disposition.indexOf("filename=");
+                    if (index > 0) {
+                        filename = disposition.substring(index + 10, disposition.length() - 1);
+                    }
+                } else {
+                    filename = fileUrl.substring(fileUrl.lastIndexOf("/") + 1, fileUrl.length());
+                }
+
+                InputStream inputStream = httpsURLConnection.getInputStream();
+                String filePath = destination + File.separator + filename;
+
+                FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+
+                int bytesRead = -1;
+                byte[] buffer = new byte[4096];
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    fileOutputStream.write(buffer, 0, bytesRead);
+                }
+
+                fileOutputStream.close();
+                inputStream.close();
+            }
+
+            httpsURLConnection.disconnect();
+        } catch (IOException e) {
+	        e.printStackTrace();
+        }
+    }
 }
